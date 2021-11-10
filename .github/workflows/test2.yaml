@@ -36,7 +36,7 @@ jobs:
           mkdir -p /opt/images/
       - name: Build toolchain
         run: |
-          cd /opt/rt-n56u/toolchain
+          cd /opt/rt-n56u/toolchain-mipsel
           sudo ./clean_sources.sh
           sudo ./build_toolchain.sh
           mkdir -p /opt/rt-n56u/toolchain
