@@ -37,10 +37,10 @@ jobs:
       - name: Build toolchain
         run: |
           cd /opt/rt-n56u/toolchain-mipsel
-          sudo ./clean_sources.sh
-          sudo ./build_toolchain.sh
-          mkdir -p /opt/rt-n56u/toolchain
-          tar -xvf out.tar -C /opt/rt-n56u/toolchain
+          sudo ./clean_sources
+          sudo ./build_toolchain
+          mkdir -p /opt/rt-n56u/toolchain-mipsel
+          tar -xvf out.tar -C /opt/rt-n56u/toolchain-mipsel
       - name: Copy  config
         #if: env.Build_PSG1218_nano == 'true'
         run: |
@@ -56,8 +56,8 @@ jobs:
         run: |
           cd /opt/rt-n56u/trunk
 
-          sudo ./clear_tree.sh
-          sudo ./build_firmware.sh
+          sudo ./clear_tree
+          sudo ./build_firmware
           sudo mv -f images/*.trx /opt/images/
       - name: Upload packages
         uses: actions/upload-artifact@v2
