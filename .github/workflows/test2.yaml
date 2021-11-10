@@ -1,0 +1,67 @@
+#修改TNAME: K2P-5.0 中的K2P-5.0为你需要编译的型号，注意名称要与configs/templates/目录下的名字相同
+name: test2
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - "v*"
+  #  branches:
+  #    - master
+  #  schedule:
+  #    - cron: 0 8 * * 5
+  watch:
+    types: [started]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Initialization environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update 
+          sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd \
+          cpio git python-docutils gettext automake autopoint texinfo build-essential help2man \
+          pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev gcc-multilib
+      - name: Clone source code
+        run: |
+          git clone --depth=1 https://gitlab.com/Developer_MZRIP/rt-n56u.git /opt/rt-n56u
+          mkdir -p /opt/images/
+      - name: Build toolchain
+        run: |
+          cd /opt/rt-n56u/toolchain
+          sudo ./clean_sources.sh
+          sudo ./build_toolchain.sh
+          mkdir -p /opt/rt-n56u/toolchain
+          tar -xvf out.tar -C /opt/rt-n56u/toolchain
+      - name: Copy  config
+        #if: env.Build_PSG1218_nano == 'true'
+        run: |
+          mkdir -p /opt/rt-n56u/trunk/configs/board/PSG1218
+          cp -f PSG1218/board.h /opt/rt-n56u/trunk/configs/board/PSG1218
+          cp -f PSG1218/board.mk /opt/rt-n56u/trunk/configs/board/PSG1218
+          cp -f PSG1218/partitions.config /opt/rt-n56u/trunk/configs/board/PSG1218
+          cp -f PSG1218/kernel-3.4.x.config /opt/rt-n56u/trunk/configs/board/PSG1218
+          cp -f PSG1218/PSG1218_nano.config /opt/rt-n56u/trunk/.configs
+      - name: Build Firmware
+        #env:
+        #TNAME: PSG1218_nano #PSG1218 K2P-5.0 K2P K2P_nano K2P_nano-5.0 PSG1208 PSG1218_nano
+        run: |
+          cd /opt/rt-n56u/trunk
+
+          sudo ./clear_tree.sh
+          sudo ./build_firmware.sh
+          sudo mv -f images/*.trx /opt/images/
+      - name: Upload packages
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: PadavanNG-packages
+          path: /opt/images
